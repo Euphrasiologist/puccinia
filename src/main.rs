@@ -2,6 +2,16 @@
 // hopefully we can make the machinery more generic
 // with a nice API at the end.
 
+/// A model trait with methods to be implemented
+trait Model {
+    /// Check the parameters
+    fn check(&self);
+    /// The differential equations
+    fn diff(&self, pop: Pop, dpop: &mut DPop);
+    /// The Runge-Kutta routine
+    fn runge_kutta()
+}
+
 /// The basic input parameters
 #[derive(Clone, Copy)]
 struct BasicParameters {
@@ -46,6 +56,7 @@ struct DPop {
     r: f64,
 }
 
+// diff is where the differential equations are defined.
 fn diff(bp: BasicParameters, pop: Pop, dpop: &mut DPop) {
     let temp_s = pop.s;
     let temp_i = pop.i;
@@ -84,7 +95,7 @@ fn runge_kutta(
 
     diff(bp, initial_pop, dpop);
 
-    fn rk4_1(dpopn: &mut DPop, dpop: &mut DPop, tmp_pop: &mut Pop, initial_pop: Pop, step: f64) {
+    fn rk_inner(dpopn: &mut DPop, dpop: &mut DPop, tmp_pop: &mut Pop, initial_pop: Pop, step: f64) {
         dpopn.s = dpop.s;
         dpopn.i = dpop.i;
         dpopn.r = dpop.r;
@@ -94,16 +105,13 @@ fn runge_kutta(
         tmp_pop.r = initial_pop.r + step * dpopn.r / 2.0;
     }
 
-    rk4_1(&mut dpop1, dpop, &mut tmp_pop, initial_pop, step);
-
+    rk_inner(&mut dpop1, dpop, &mut tmp_pop, initial_pop, step);
     diff(bp, tmp_pop, dpop);
 
-    rk4_1(&mut dpop2, dpop, &mut tmp_pop, initial_pop, step);
-
+    rk_inner(&mut dpop2, dpop, &mut tmp_pop, initial_pop, step);
     diff(bp, tmp_pop, dpop);
 
-    rk4_1(&mut dpop3, dpop, &mut tmp_pop, initial_pop, step);
-
+    rk_inner(&mut dpop3, dpop, &mut tmp_pop, initial_pop, step);
     diff(bp, tmp_pop, dpop);
 
     dpop4.s = dpop.s;
